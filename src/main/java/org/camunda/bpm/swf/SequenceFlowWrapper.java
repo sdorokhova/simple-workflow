@@ -18,7 +18,7 @@ public class SequenceFlowWrapper {
   }
 
   public String getTo() {
-    return (String) sequenceFlowData.get("from");
+    return (String) sequenceFlowData.get("to");
   }
 
   public String getCondition() {
