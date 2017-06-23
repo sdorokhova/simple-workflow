@@ -38,14 +38,13 @@ public class Transformer {
     Map<String, List<String>> incomingFlows = new HashMap<String, List<String>>();
     Map<String, List<String>> outgoingFlows = new HashMap<String, List<String>>();
 
+
     List<Map<String, Object>> flow = (List<Map<String, Object>>) yaml.get("flow");
-
-    populateFlowMaps(incomingFlows, outgoingFlows, flow);
-
-    final Map<String, Map<String, Object>> taskMap = getTaskMap(yaml);
+    populateFlowMaps(incomingFlows, outgoingFlows, flow, yaml);
 
     String processId = sanitizeId((String) yaml.get("name"));
 
+    final Map<String, Map<String, Object>> taskMap = getTaskMap(yaml);
     final BpmnModelInstance modelInstance = createBpmnModelInstance(incomingFlows, outgoingFlows, taskMap, processId);
 
     applySequenceFlowConditions(modelInstance, flow);
@@ -53,8 +52,33 @@ public class Transformer {
     return modelInstance;
   }
 
-  private void populateFlowMaps(Map<String, List<String>> incomingFlows, Map<String, List<String>> outgoingFlows, List<Map<String, Object>> flow) {
-    if (flow != null) {
+  private void populateFlowMaps(Map<String, List<String>> incomingFlows, Map<String, List<String>> outgoingFlows, List<Map<String, Object>> flow, Map<String, Object> yaml) {
+    if (flow == null) {
+        flow = new ArrayList<Map<String,Object>>();
+
+        List<Map<String, Object>> tasks = (List<Map<String, Object>>) yaml.get("tasks");
+
+        if (tasks != null)
+        {
+            String previousTask = null;
+
+            for (Map<String, Object> task : tasks)
+            {
+                String taskId = (String) task.get("id");
+
+                if (previousTask != null)
+                {
+                    final HashMap<String, Object> connection = new HashMap<String, Object>();
+                    connection.put("from", previousTask);
+                    connection.put("to", taskId);
+                    flow.add(connection);
+                }
+
+                previousTask = taskId;
+            }
+
+        }
+    }
       for (Map<String, Object> sequeceFlow : flow) {
         final String sourceTask = (String) sequeceFlow.get("from");
         final String targetTask = (String) sequeceFlow.get("to");
@@ -73,7 +97,7 @@ public class Transformer {
         }
         incomingFlowsForTask.add(sourceTask);
       }
-    }
+
   }
 
   private BpmnModelInstance createBpmnModelInstance(Map<String, List<String>> incomingFlows, Map<String, List<String>> outgoingFlows,

@@ -1,0 +1,6 @@
+name: testProcess
+
+tasks:
+    - id: TASK_1
+    - id: TASK_2
+    - id: TASK_3
