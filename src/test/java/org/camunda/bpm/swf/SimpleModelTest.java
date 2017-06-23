@@ -22,6 +22,7 @@ public class SimpleModelTest {
   public static final String MODEL_FILENAME = "simpleModel.yaml";
   public static final String MODEL_WITH_CONDITIONS_FILENAME = "conditionsModel.yaml";
   public static final String MODEL_WITHOUT_FLOW = "without-flow.yaml";
+  public static final String MODEL_USER_TASK = "userTaskModel.yaml";
 
   private Transformer transformer;
 
@@ -84,6 +85,25 @@ public class SimpleModelTest {
     }
 
     System.out.println(Bpmn.convertToString(modelInstance));
+  }
+
+  @Test
+  public void testUserTasks()
+  {
+    final InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(MODEL_WITHOUT_FLOW);
+
+    final BpmnModelInstance modelInstance = transformer.transform(inputStream);
+    System.out.println(Bpmn.convertToString(modelInstance));
+
+    assertNotNull(modelInstance.getModelElementById("testProcess"));
+
+    assertServiceTask(modelInstance, "TASK_1");
+    assertServiceTask(modelInstance, "TASK_2");
+    assertServiceTask(modelInstance, "TASK_3");
+
+    assertConnected(modelInstance, "TASK_1", "TASK_2");
+    assertConnected(modelInstance, "TASK_2", "TASK_3");
+
   }
 
   @Test

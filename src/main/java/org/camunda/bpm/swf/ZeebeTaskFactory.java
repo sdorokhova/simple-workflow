@@ -3,6 +3,7 @@ package org.camunda.bpm.swf;
 import java.util.Map;
 
 import org.camunda.bpm.model.bpmn.builder.AbstractFlowNodeBuilder;
+import org.camunda.bpm.model.bpmn.builder.AbstractTaskBuilder;
 import org.camunda.bpm.model.bpmn.builder.ServiceTaskBuilder;
 import org.camunda.bpm.model.bpmn.instance.ExtensionElements;
 import org.camunda.bpm.model.bpmn.instance.ServiceTask;
@@ -30,9 +31,15 @@ public class ZeebeTaskFactory extends DefaultTaskFactory
 
 
     @Override
-    public ServiceTaskBuilder buildTask(AbstractFlowNodeBuilder builder, Map<String, Object> taskData)
+    public AbstractTaskBuilder buildTask(AbstractFlowNodeBuilder builder, Map<String, Object> taskData)
     {
-        final ServiceTaskBuilder serviceTaskBuilder = super.buildTask(builder, taskData);
+        final AbstractTaskBuilder taskBuilder = super.buildTask(builder, taskData);
+
+        if (! (taskBuilder instanceof ServiceTaskBuilder)) {
+            throw new RuntimeException("only service tasks are supported");
+        }
+
+        ServiceTaskBuilder serviceTaskBuilder = (ServiceTaskBuilder) taskBuilder;
 
         final String taskType = (String) taskData.get("type");
         final Integer retries = (Integer) taskData.get("retries");
