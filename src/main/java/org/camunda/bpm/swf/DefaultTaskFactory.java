@@ -9,7 +9,7 @@ import org.camunda.bpm.model.bpmn.builder.ServiceTaskBuilder;
 public class DefaultTaskFactory implements TaskFactory
 {
     @Override
-    public AbstractFlowNodeBuilder buildTask(AbstractFlowNodeBuilder builder, Map<String, Object> taskData)
+    public ServiceTaskBuilder buildTask(AbstractFlowNodeBuilder builder, Map<String, Object> taskData)
     {
         String taskId = (String) taskData.get("id");
         String taskName = (String) taskData.get("name");

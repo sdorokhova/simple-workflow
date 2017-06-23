@@ -87,14 +87,17 @@ public class Transformer {
 
   private AbstractFlowNodeBuilder buildFlow(String fromTaskId, AbstractFlowNodeBuilder builder, Map<String, List<String>> outgoingFlows, Map<String, Map<String, Object>> taskMap) {
     final List<String> outcomes = outgoingFlows.get(fromTaskId);
-    for (String toTaskId: outcomes) {
-      builder = taskFactory.buildTask(builder, taskMap.get(toTaskId));
-      if (outgoingFlows.get(toTaskId) != null) {
-        buildFlow(toTaskId, builder, outgoingFlows, taskMap);
-      } else {
-        builder = builder.endEvent();
-      }
-      builder = builder.moveToNode(fromTaskId);
+    if (outcomes != null)
+    {
+        for (String toTaskId: outcomes) {
+          builder = taskFactory.buildTask(builder, taskMap.get(toTaskId));
+          if (outgoingFlows.get(toTaskId) != null) {
+            buildFlow(toTaskId, builder, outgoingFlows, taskMap);
+          } else {
+            builder = builder.endEvent();
+          }
+          builder = builder.moveToNode(fromTaskId);
+        }
     }
     return builder;
   }

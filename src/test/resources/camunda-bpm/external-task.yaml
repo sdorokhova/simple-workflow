@@ -1,0 +1,7 @@
+name: test
+
+tasks:
+    - id: TASK_1
+      topic: someTopic
+      priority: 10
+      
