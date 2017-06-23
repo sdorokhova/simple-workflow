@@ -16,7 +16,10 @@ public class CamundaBpmTaskFactory extends DefaultTaskFactory
         Integer priority = (Integer) taskData.get("priority");
 
         serviceTaskBuilder.camundaTopic(topicName);
-        serviceTaskBuilder.camundaTaskPriority(priority.toString());
+        if (priority != null) {
+            serviceTaskBuilder.camundaTaskPriority(priority.toString());
+        }
+        serviceTaskBuilder.camundaType("external");
 
         return serviceTaskBuilder;
     }

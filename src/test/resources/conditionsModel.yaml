@@ -5,12 +5,15 @@ description: >
 
 tasks:
     - id:   COLLECT_MONEY
+      topic: collectMoney
 
     - id:   FETCH_ITEMS
+      topic: fetchItems
 
     - id:   DELIVER_ITEMS
+      topic: deliverItems
 
 flow:
-    - { from: COLLECT_MONEY, to: FETCH_ITEMS, condition: '${expression1}' }
-    - { from: COLLECT_MONEY, to: DELIVER_ITEMS, condition: '${expression2}' }
+    - { from: COLLECT_MONEY, to: FETCH_ITEMS, condition: '${var == 1}' }
+    - { from: COLLECT_MONEY, to: DELIVER_ITEMS, condition: '${var == 2}' }
 

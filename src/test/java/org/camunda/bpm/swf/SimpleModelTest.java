@@ -76,9 +76,9 @@ public class SimpleModelTest {
     while (modelSequenceFlowIterator.hasNext()) {
       final SequenceFlow sequenceFlow = modelSequenceFlowIterator.next();
       if (sequenceFlow.getTarget().getId().equals("FETCH_ITEMS")) {
-        assertEquals("${expression1}", sequenceFlow.getConditionExpression().getTextContent());
+        assertEquals("${var == 1}", sequenceFlow.getConditionExpression().getTextContent());
       } else if (sequenceFlow.getTarget().getId().equals("DELIVER_ITEMS")) {
-        assertEquals("${expression2}", sequenceFlow.getConditionExpression().getTextContent());
+        assertEquals("${var == 2}", sequenceFlow.getConditionExpression().getTextContent());
       }
 
     }

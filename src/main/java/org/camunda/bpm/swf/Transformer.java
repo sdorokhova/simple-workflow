@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.camunda.bpm.model.bpmn.Bpmn;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.builder.AbstractFlowNodeBuilder;
@@ -26,20 +27,33 @@ public class Transformer {
     this.taskFactory = taskFactory;
   }
 
-    public Transformer()
-    {
-        this(new DefaultTaskFactory());
-    }
+  public Transformer() {
+    this(new DefaultTaskFactory());
+  }
 
   public BpmnModelInstance transform(InputStream inputStream) {
 
     final Map<String, Object> yaml = (Map<String, Object>) new Yaml().load(new InputStreamReader(inputStream, Charset.forName("utf-8")));
 
-    Map<String, List<String>> incommingFlows = new HashMap<String, List<String>>();
+    Map<String, List<String>> incomingFlows = new HashMap<String, List<String>>();
     Map<String, List<String>> outgoingFlows = new HashMap<String, List<String>>();
 
     List<Map<String, Object>> flow = (List<Map<String, Object>>) yaml.get("flow");
 
+    populateFlowMaps(incomingFlows, outgoingFlows, flow);
+
+    final Map<String, Map<String, Object>> taskMap = getTaskMap(yaml);
+
+    String processId = sanitizeId((String) yaml.get("name"));
+
+    final BpmnModelInstance modelInstance = createBpmnModelInstance(incomingFlows, outgoingFlows, taskMap, processId);
+
+    applySequenceFlowConditions(modelInstance, flow);
+
+    return modelInstance;
+  }
+
+  private void populateFlowMaps(Map<String, List<String>> incomingFlows, Map<String, List<String>> outgoingFlows, List<Map<String, Object>> flow) {
     if (flow != null) {
       for (Map<String, Object> sequeceFlow : flow) {
         final String sourceTask = (String) sequeceFlow.get("from");
@@ -52,15 +66,29 @@ public class Transformer {
         }
         outgoingFlowsForTask.add(targetTask);
 
-        List<String> incomingFlowsForTask = incommingFlows.get(targetTask);
+        List<String> incomingFlowsForTask = incomingFlows.get(targetTask);
         if (incomingFlowsForTask == null) {
           incomingFlowsForTask = new ArrayList<String>();
-          incommingFlows.put(targetTask, incomingFlowsForTask);
+          incomingFlows.put(targetTask, incomingFlowsForTask);
         }
         incomingFlowsForTask.add(sourceTask);
       }
     }
+  }
 
+  private BpmnModelInstance createBpmnModelInstance(Map<String, List<String>> incomingFlows, Map<String, List<String>> outgoingFlows,
+    Map<String, Map<String, Object>> taskMap, String processId) {
+    String firstTaskId = findFirstTask(taskMap.keySet(), incomingFlows);
+
+    AbstractFlowNodeBuilder builder = Bpmn.createExecutableProcess(processId).startEvent();
+    builder = taskFactory.buildTask(builder, taskMap.get(firstTaskId));
+
+    builder = buildFlow(firstTaskId, builder, outgoingFlows, taskMap);
+
+    return builder.done();
+  }
+
+  private Map<String, Map<String, Object>> getTaskMap(Map<String, Object> yaml) {
     List<Map<String, Object>> tasks = (List<Map<String, Object>>) yaml.get("tasks");
 
     final Map<String, Map<String, Object>> taskMap = new HashMap<String, Map<String, Object>>();
@@ -71,24 +99,14 @@ public class Transformer {
     for (Map<String, Object> task : tasks) {
       taskMap.put((String) task.get("id"), task);
     }
-
-    String firstTaskId = findFirstTask(tasks, incommingFlows);
-
-    String processId = sanitizeId((String) yaml.get("name"));
-
-    AbstractFlowNodeBuilder builder = Bpmn.createExecutableProcess(processId).startEvent();
-    builder = taskFactory.buildTask(builder, taskMap.get(firstTaskId));
-
-    builder = buildFlow(firstTaskId, builder, outgoingFlows, taskMap);
-
-    final BpmnModelInstance modelInstance = builder.done();
-
-    applySequenceFlowConditions(modelInstance, flow);
-
-    return modelInstance;
+    return taskMap;
   }
 
   private void applySequenceFlowConditions(BpmnModelInstance modelInstance, List<Map<String, Object>> flows) {
+
+    if (flows == null) {
+      return;
+    }
 
     Map<String, List<SequenceFlowWrapper>> inputSequenceFlows = new HashMap<String, List<SequenceFlowWrapper>>();
     for (Map<String, Object> flow: flows) {
@@ -139,10 +157,9 @@ public class Transformer {
     return builder;
   }
 
-  private String findFirstTask(List<Map<String, Object>> tasks, Map<String, List<String>> incomingFlows) {
+  private String findFirstTask(Set<String> taskIds, Map<String, List<String>> incomingFlows) {
     String firstTaskId = null;
-    for (Map<String, Object> task: tasks) {
-      final String taskId = (String) task.get("id");
+    for (String taskId: taskIds) {
       if (incomingFlows.get(taskId) == null) {
         if (firstTaskId == null) {
           firstTaskId = taskId;
