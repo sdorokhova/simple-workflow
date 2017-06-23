@@ -1,0 +1,16 @@
+name: Order Processing
+description: >
+    This workflow describes the processing of an order.
+    There can be more text here...
+
+tasks:
+    - id:   COLLECT_MONEY
+
+    - id:   FETCH_ITEMS
+
+    - id:   DELIVER_ITEMS
+
+flow:
+    - { from: COLLECT_MONEY, to: FETCH_ITEMS, condition: '${expression1}' }
+    - { from: COLLECT_MONEY, to: DELIVER_ITEMS, condition: '${expression2}' }
+

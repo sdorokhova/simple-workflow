@@ -5,11 +5,14 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import org.camunda.bpm.model.bpmn.Bpmn;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.builder.AbstractFlowNodeBuilder;
+import org.camunda.bpm.model.bpmn.instance.ConditionExpression;
+import org.camunda.bpm.model.bpmn.instance.SequenceFlow;
 import org.yaml.snakeyaml.Yaml;
 
 /**
@@ -78,7 +81,41 @@ public class Transformer {
 
     builder = buildFlow(firstTaskId, builder, outgoingFlows, taskMap);
 
-    return builder.done();
+    final BpmnModelInstance modelInstance = builder.done();
+
+    applySequenceFlowConditions(modelInstance, flow);
+
+    return modelInstance;
+  }
+
+  private void applySequenceFlowConditions(BpmnModelInstance modelInstance, List<Map<String, Object>> flows) {
+
+    Map<String, List<SequenceFlowWrapper>> inputSequenceFlows = new HashMap<String, List<SequenceFlowWrapper>>();
+    for (Map<String, Object> flow: flows) {
+      SequenceFlowWrapper seqFlow = new SequenceFlowWrapper(flow);
+      if (inputSequenceFlows.get(seqFlow.getFrom()) == null) {
+        inputSequenceFlows.put(seqFlow.getFrom(), new ArrayList<SequenceFlowWrapper>());
+      }
+      inputSequenceFlows.get(seqFlow.getFrom()).add(seqFlow);
+    }
+
+    final Iterator<SequenceFlow> modelSequenceFlowIterator = modelInstance.getModelElementsByType(SequenceFlow.class).iterator();
+    while (modelSequenceFlowIterator.hasNext()) {
+      final SequenceFlow sequenceFlow = modelSequenceFlowIterator.next();
+      final String sourceId = sequenceFlow.getSource().getId();
+      if (inputSequenceFlows.get(sourceId) != null) {
+        final Iterator<SequenceFlowWrapper> iterator = inputSequenceFlows.get(sourceId).iterator();
+        if (iterator.hasNext()) {
+          final SequenceFlowWrapper flowDefinition = iterator.next();
+          if (flowDefinition.getCondition() != null) {
+            final ConditionExpression conditionExpression = modelInstance.newInstance(ConditionExpression.class);
+            conditionExpression.setTextContent(flowDefinition.getCondition());
+            sequenceFlow.setConditionExpression(conditionExpression);
+          }
+          iterator.remove();
+        }
+      }
+    }
   }
 
   private String sanitizeId(String processId) {
