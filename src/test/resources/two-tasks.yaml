@@ -1,0 +1,11 @@
+name: test
+
+tasks:
+    - id: TASK_1
+    - id: TASK_2
+    
+flow:
+
+	- from: TASK_1,
+	  to: TASK_2
+    

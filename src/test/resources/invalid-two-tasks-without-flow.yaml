@@ -1,0 +1,5 @@
+name: test
+
+tasks:
+    - id: TASK_1
+    - id: TASK_2

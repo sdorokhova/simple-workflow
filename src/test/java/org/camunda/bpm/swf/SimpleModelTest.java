@@ -1,18 +1,17 @@
 package org.camunda.bpm.swf;
 
-import java.io.FileInputStream;
+import static org.junit.Assert.*;
+
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Collection;
+
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.SequenceFlow;
 import org.camunda.bpm.model.bpmn.instance.ServiceTask;
 import org.camunda.bpm.model.xml.instance.ModelElementInstance;
 import org.junit.Before;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Svetlana Dorokhova.
@@ -31,7 +30,7 @@ public class SimpleModelTest {
   @Test
   public void testSimpleModel() throws FileNotFoundException {
 
-    final InputStream inputStream = this.getClass().getResourceAsStream(MODEL_FILENAME);
+    final InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream(MODEL_FILENAME);
 
     final BpmnModelInstance modelInstance = transformer.transform(inputStream);
 
