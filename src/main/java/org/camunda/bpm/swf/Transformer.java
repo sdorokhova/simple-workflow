@@ -17,6 +17,17 @@ import org.yaml.snakeyaml.Yaml;
  */
 public class Transformer {
 
+  private TaskFactory taskFactory;
+
+  public Transformer(TaskFactory taskFactory) {
+    this.taskFactory = taskFactory;
+  }
+
+    public Transformer()
+    {
+        this(new DefaultTaskFactory());
+    }
+
   public BpmnModelInstance transform(InputStream inputStream) {
 
     final Map<String, Object> yaml = (Map<String, Object>) new Yaml().load(new InputStreamReader(inputStream, Charset.forName("utf-8")));
@@ -63,9 +74,9 @@ public class Transformer {
     String processId = sanitizeId((String) yaml.get("name"));
 
     AbstractFlowNodeBuilder builder = Bpmn.createExecutableProcess(processId).startEvent();
-    builder = builder.serviceTask(firstTaskId);
+    builder = taskFactory.buildTask(builder, taskMap.get(firstTaskId));
 
-    builder = buildFlow(firstTaskId, builder, outgoingFlows);
+    builder = buildFlow(firstTaskId, builder, outgoingFlows, taskMap);
 
     return builder.done();
   }
@@ -74,12 +85,12 @@ public class Transformer {
     return processId.replaceAll(" ", "");
   }
 
-  private AbstractFlowNodeBuilder buildFlow(String fromTaskId, AbstractFlowNodeBuilder builder, Map<String, List<String>> outgoingFlows) {
+  private AbstractFlowNodeBuilder buildFlow(String fromTaskId, AbstractFlowNodeBuilder builder, Map<String, List<String>> outgoingFlows, Map<String, Map<String, Object>> taskMap) {
     final List<String> outcomes = outgoingFlows.get(fromTaskId);
     for (String toTaskId: outcomes) {
-      builder = builder.serviceTask(toTaskId);
+      builder = taskFactory.buildTask(builder, taskMap.get(toTaskId));
       if (outgoingFlows.get(toTaskId) != null) {
-        buildFlow(toTaskId, builder, outgoingFlows);
+        buildFlow(toTaskId, builder, outgoingFlows, taskMap);
       } else {
         builder = builder.endEvent();
       }

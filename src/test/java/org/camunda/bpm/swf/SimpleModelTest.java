@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Collection;
 
+import org.camunda.bpm.model.bpmn.Bpmn;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.SequenceFlow;
 import org.camunda.bpm.model.bpmn.instance.ServiceTask;
@@ -42,6 +43,8 @@ public class SimpleModelTest {
     final Collection<SequenceFlow> flows = modelInstance.getModelElementsByType(SequenceFlow.class);
 
     assertEquals(3, flows.size());
+
+    System.out.println(Bpmn.convertToString(modelInstance));
 
     //TODO assert flows
   }
