@@ -41,9 +41,9 @@ public class SimpleModelTest {
 
     final Collection<SequenceFlow> flows = modelInstance.getModelElementsByType(SequenceFlow.class);
 
-    assertEquals(1, flows.size());
-    assertEquals("COLLECT_MONEY", flows.iterator().next().getSource().getId());
-    assertEquals("FETCH_ITEMS", flows.iterator().next().getTarget().getId());
+    assertEquals(3, flows.size());
+
+    //TODO assert flows
   }
 
   private void assertServiceTask(BpmnModelInstance modelInstance, String taskId) {
