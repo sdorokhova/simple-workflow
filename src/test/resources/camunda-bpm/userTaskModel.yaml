@@ -1,4 +1,4 @@
-name: Order Processing
+name: Order Processing With User Tasks
 description: >
     This workflow describes the processing of an order.
     There can be more text here...
@@ -6,6 +6,7 @@ description: >
 tasks:
     - id:   COLLECT_MONEY
       taskType: userTask
+      taskAssignee: jonny
 
     - id:   FETCH_ITEMS
 

@@ -28,7 +28,7 @@ public class DefaultTaskFactory implements TaskFactory
     }
 
     public AbstractTaskBuilder createTaskBuilder(AbstractFlowNodeBuilder builder, String taskType) {
-        if (taskType != null && taskType == "userTask") {
+        if (taskType != null && taskType.equals("userTask")) {
             return builder.userTask();
         }
         return builder.serviceTask();

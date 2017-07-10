@@ -14,6 +14,9 @@ tasks:
       topic: deliverItems
 
 flow:
-    - { from: COLLECT_MONEY, to: FETCH_ITEMS, condition: '${var == 1}' }
+    - from: COLLECT_MONEY
+      to: FETCH_ITEMS
+      condition: '${var == 1}'
+
     - { from: COLLECT_MONEY, to: DELIVER_ITEMS, condition: '${var == 2}' }
 
